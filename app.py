@@ -1,5 +1,3 @@
-
-app_code = """
 import streamlit as st
 import pandas as pd
 from pandasai import SmartDataframe
@@ -60,29 +58,3 @@ if uploaded_file is not None:
             
             st.session_state.conversation.append((query, response))
             st.experimental_rerun()
-
-"""
-
-with open('app2.py', 'w') as f:
-    f.write(app_code)
-from pyngrok import ngrok
-import subprocess
-
-# Run Streamlit in the background
-streamlit_process = subprocess.Popen(['streamlit', 'run', 'app2.py'])
-
-# Configure ngrok with your authtoken
-ngrok.set_auth_token("2iiyFSxWxmUr0EBpqogJe3alZxO_5KCQ6aj5JUdvX1GxF16TF")  # Replace with your actual authtoken
-
-# Create a public URL using ngrok, specifying the port explicitly
-public_url = ngrok.connect(8501, "http")  # Explicitly set the protocol to "http"
-print(f"Streamlit app running at: {public_url}")
-
-# Keep the cell running to maintain the ngrok tunnel
-import time
-try:
-    while True:
-        time.sleep(1)
-except KeyboardInterrupt:
-    streamlit_process.terminate()
-    ngrok.kill()
