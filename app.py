@@ -200,17 +200,17 @@ api_key = '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'
 llm = ChatGroq(model_name='llama3-70b-8192', api_key=api_key)
 
 def upload_to_cloudinary(image_bytes):
-    response = cloudinary.uploader.upload(image_bytes, folder='streamlit_app')
-    if response and 'url' in response:
-        return response['url']
-    else:
-        st.error("Failed to upload image to Cloudinary")
-        return None
+    try:
+        response = cloudinary.uploader.upload(image_bytes, folder='streamlit_app', use_filename=True)
+        if response and 'url' in response:
+            return response['url']
+    except Exception as e:
+        st.error(f"Failed to upload image to Cloudinary: {e}")
+    return None
 
 # Streamlit interface
 st.title("Data Analysis Chatbot")
 st.write("Upload your CSV file to analyze the data.")
-
 uploaded_file = st.file_uploader("Choose a file")
 
 if uploaded_file is not None:
@@ -226,7 +226,7 @@ if uploaded_file is not None:
     for q, r in st.session_state.conversation:
         st.write(f"**Q:** {q}")
         if isinstance(r, str) and r.startswith('http'):  # If the response is an image URL
-            st.image(r)  # Display the image directly from the URL
+            st.image(r, caption='Generated Image')  # Display the image directly from the URL
         else:
             st.write(f"**A:** {r}")
 
@@ -253,4 +253,3 @@ if uploaded_file is not None:
             # Append new query and response to the conversation
             st.session_state.conversation.append((query, response))
             st.experimental_rerun()  # Refresh to show new conversation
-
