@@ -41,7 +41,7 @@ if uploaded_file is not None:
     if st.button('Submit', key='submit_query'):
         if query:
             response = df.chat(query)
-
+            
             # Check if the response is a plot and needs saving
             if isinstance(response, plt.Figure):
                 timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
@@ -55,6 +55,6 @@ if uploaded_file is not None:
                 os.makedirs("generated_images", exist_ok=True)
                 os.rename('/content/exports/charts/temp_chart.png', image_path)
                 response = image_path
-
+            
             st.session_state.conversation.append((query, response))
             st.experimental_rerun()
