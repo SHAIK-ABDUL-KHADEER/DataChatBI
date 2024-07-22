@@ -129,7 +129,7 @@ import pandas as pd
 from pandasai import SmartDataframe
 from langchain_groq.chat_models import ChatGroq
 import matplotlib.pyplot as plt
-from datetime import datetime
+import io
 import os
 
 # Initialize LLM and read the data
@@ -152,15 +152,12 @@ if uploaded_file is not None:
         st.session_state.conversation = []
 
     # Display the conversation history
-    if 'conversation' in st.session_state:
-        for q, r in st.session_state.conversation:
-            st.write(f"**Q:** {q}")
-            if isinstance(r, plt.Figure):
-                st.pyplot(r)
-            elif isinstance(r, str) and r.startswith('generated_images/'):
-                st.image(r, use_column_width=True)  # Ensure the image is displayed properly
-            else:
-                st.write(f"**A:** {r}")
+    for q, r in st.session_state.conversation:
+        st.write(f"**Q:** {q}")
+        if isinstance(r, bytes):  # If the response is image data in bytes
+            st.image(r)  # Display the image directly
+        else:
+            st.write(f"**A:** {r}")
 
     # Input for new query
     query = st.text_input("Ask a question about the data:")
@@ -169,20 +166,15 @@ if uploaded_file is not None:
         if query:
             response = df.chat(query)
 
-            # Check if the response is a plot and needs saving
+            # Check if the response is a plot and needs to be converted to image bytes
             if isinstance(response, plt.Figure):
-                timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-                image_path = f"generated_images/response_{timestamp}.png"
-                os.makedirs("generated_images", exist_ok=True)
-                response.savefig(image_path)
-                response.close()  # Close the figure to free memory
-                response = image_path  # Update the response to the image path
+                buf = io.BytesIO()  # Create an in-memory buffer
+                response.savefig(buf, format='png')  # Save the figure to the buffer
+                buf.seek(0)  # Rewind the buffer to the beginning
+                response = buf.getvalue()  # Get the image data as bytes
+                response.close()  # Close the buffer
 
             # Append new query and response to the conversation
             st.session_state.conversation.append((query, response))
             st.experimental_rerun()  # Refresh to show new conversation
 
-    # Clear the text input after submission
-    if st.session_state.get('last_query', '') != query:
-        st.session_state['last_query'] = query
-        st.text_input("Ask a question about the data:", value=query, key='query_input')
