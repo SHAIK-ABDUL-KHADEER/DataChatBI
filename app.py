@@ -208,9 +208,8 @@ if uploaded_file is not None:
     for q, r in st.session_state.conversation:
         st.write(f"**Q:** {q}")
         if isinstance(r, bytes):  # If the response is image data in bytes
-            # Convert bytes to PIL Image
-            image = Image.open(io.BytesIO(r))
-            st.image(image, caption="Generated Image", width=500, channels="RGB")
+            image = Image.open(io.BytesIO(r))  # Convert bytes to image
+            st.image(image, caption="Generated Image", width=500)
         else:
             st.write(f"**A:** {r}")
 
