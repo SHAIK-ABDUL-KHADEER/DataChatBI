@@ -242,6 +242,7 @@ import pandas as pd
 from pandasai import SmartDataframe
 from langchain_groq.chat_models import ChatGroq
 import matplotlib.pyplot as plt
+import cv2
 from datetime import datetime
 from io import BytesIO
 
@@ -281,16 +282,16 @@ if uploaded_file is not None:
 
             # Check if the response is a plot and needs saving
             if isinstance(response, plt.Figure):
+                # Convert matplotlib figure to an OpenCV image
                 buf = BytesIO()
                 response.savefig(buf, format='png')
                 buf.seek(0)
-                response = buf  # Update the response to the image buffer
-            elif response == '/content/exports/charts/temp_chart.png':
-                buf = BytesIO()
-                with open(response, 'rb') as f:
-                    buf.write(f.read())
-                buf.seek(0)
-                response = buf
+                img_array = np.frombuffer(buf.getvalue(), dtype=np.uint8)
+                img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+
+                # Encode OpenCV image to PNG
+                _, buf = cv2.imencode('.png', img)
+                response = BytesIO(buf)  # Update the response to the image buffer
 
             st.session_state.conversation.append((query, response))
             st.experimental_rerun()
