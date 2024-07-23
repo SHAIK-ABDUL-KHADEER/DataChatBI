@@ -267,11 +267,8 @@ if uploaded_file is not None:
     # Display the conversation history
     for q, r in st.session_state.conversation:
         st.write(f"**Q:** {q}")
-        if isinstance(r, plt.Figure):
-            buf = BytesIO()
-            r.savefig(buf, format='png')
-            buf.seek(0)
-            st.image(buf, format='png')
+        if isinstance(r, BytesIO):
+            st.image(r, format='png')
         else:
             st.write(f"**A:** {r}")
 
@@ -289,10 +286,8 @@ if uploaded_file is not None:
                 buf.seek(0)
                 response = buf  # Update the response to the image buffer
             elif response == '/content/exports/charts/temp_chart.png':
-                timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-                image_path = f"generated_images/response_{timestamp}.png"
                 buf = BytesIO()
-                with open(image_path, 'rb') as f:
+                with open(response, 'rb') as f:
                     buf.write(f.read())
                 buf.seek(0)
                 response = buf
